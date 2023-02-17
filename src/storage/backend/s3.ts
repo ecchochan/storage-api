@@ -40,6 +40,9 @@ export class S3Backend implements StorageBackendAdapter {
         socketTimeout: 3000,
       }),
     }
+    if (process.env.S3_ENDPOINT) {
+      params.endpoint = process.env.S3_ENDPOINT
+    }
     if (endpoint) {
       params.endpoint = endpoint
     }
