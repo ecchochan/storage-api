@@ -12,6 +12,7 @@ import {
 } from '../queue'
 import { randomUUID } from 'crypto'
 import { FileUploadedSuccess, FileUploadStarted } from '../monitoring/metrics'
+import { MultipartValue } from '@fastify/multipart'
 
 interface UploaderOptions extends UploadObjectOptions {
   fileSizeLimit?: number
@@ -241,15 +242,15 @@ export class Uploader {
     let cacheControl: string
     if (contentType?.startsWith('multipart/form-data')) {
       try {
-        const formData = await request.file({ limits: { fileSize: fileSizeLimit } })
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const formData = (await request.file({ limits: { fileSize: fileSizeLimit } }))!
 
         if (!formData) {
           throw new StorageBackendError(`no_file_provided`, 400, 'No file provided')
         }
 
         // https://github.com/fastify/fastify-multipart/issues/162
-        /* @ts-expect-error: https://github.com/aws/aws-sdk-js-v3/issues/2085 */
-        const cacheTime = formData.fields.cacheControl?.value
+        const cacheTime = (formData.fields.cacheControl as MultipartValue)?.value
 
         body = formData.file
         mimeType = formData.mimetype
