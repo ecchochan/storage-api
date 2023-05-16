@@ -32,8 +32,8 @@ export class StorageKnexDB implements Database {
     this.role = connection?.role
   }
 
-  async withTransaction<T extends (db: Database) => Promise<any>>(
-    fn: T,
+  async withTransaction<T>(
+    fn: (db: Database) => Promise<T>,
     transactionOptions?: TransactionOptions
   ) {
     let retryLeft = transactionOptions?.retry || 1
@@ -56,7 +56,7 @@ export class StorageKnexDB implements Database {
           const opts = { ...this.options, tnx }
           const storageWithTnx = new StorageKnexDB(this.connection, opts)
 
-          const result: Awaited<ReturnType<T>> = await fn(storageWithTnx)
+          const result: T = await fn(storageWithTnx)
           await tnx.commit()
           return result
         } catch (e) {
